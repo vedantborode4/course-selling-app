@@ -1,6 +1,7 @@
 const express = require('express');
 const { Router } = express;
 // const Router = express.Router();
+const Admin = require('../models/admin.model.js'); 
 
 const adminRouter = Router();
 

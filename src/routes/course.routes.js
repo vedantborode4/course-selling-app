@@ -1,6 +1,7 @@
 const express = require("express");
 const {Router} = express;
 // const Router = express.Router();
+const Course = require("../models/course.model.js");
 
 const courseRouter = Router();
 
