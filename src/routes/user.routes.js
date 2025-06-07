@@ -10,9 +10,14 @@ const userRouter = Router();
 
 const userSignupZodSchema = z.object({
     email: z.string().email(),
-    password: z.string().min(6).max(52),
+    password: z.string().min(6).max(52), 
     firstName: z.string().min(2).max(24),
     lastName: z.string().min(2).max(24),
+})
+
+const userLoginZodSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6).max(52),    
 })
 
 const JWT_SECRET = `${process.env.USER_JWT_SECRET}`
@@ -67,10 +72,57 @@ userRouter.post("/signup", async(req, res) => {
     }
 });
 
-userRouter.post("/login", (req, res) => {
-    res.json({
-        message: "login endpoint"
-    })
+userRouter.post("/login", async(req, res) => {
+
+    const { email, password } = req.body;
+
+    try {
+        const parsedData = userLoginZodSchema.safeParse(req.body)
+
+        if(!parsedData.success){
+            return res.json({
+                message: parsedData.error.errors
+            })
+        }
+
+        const user = await User.findOne({
+            email: parsedData.data.email
+        }) 
+        
+        if(!user){
+            return res.json({
+                message: `user doesn't exists `
+            })
+        }
+
+        const isPasswordValid = await bcrypt.compare(parsedData.data.password, user.password)
+
+        if(!isPasswordValid) {
+            return res.json({
+                message: `Invalid credentials`
+            })
+        }
+
+        const token = jwt.sign({
+            userId: user._id,
+            email: user.email,
+        },
+         JWT_SECRET, 
+        { 
+            expiresIn: '1h' 
+        });
+
+        res.json({
+            message: `Login successful`,
+            token: token
+        })
+
+    } catch (error) {
+        res.json({
+            message: `Error creating user ${error}`,
+        })
+    }
+
 })
 
 userRouter.get("/purchases", (req, res) => {
