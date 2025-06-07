@@ -8,6 +8,7 @@ const { connectDB } = require("./db/db.js");
 connectDB()
 
 const app = express();
+app.use(express.json())
 const port = 3000;
 
 app.use('/api/v1/user', userRouter)
