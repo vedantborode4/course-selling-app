@@ -9,8 +9,14 @@ function adminAuthMiddleware ( req, res, next ) {
     const isDecoded = jwt.verify(token, JWT_SECRET);
 
     if(isDecoded){
-        req.adminId = isDecoded.id;
-        next()
+        try {
+            req.adminId = isDecoded.adminId;
+            next()
+        } catch (error) {
+           return res.json({
+            message: `error: ${error}`
+            }) 
+        }
     }else{
         return res.json({
             message: "Please signin"
