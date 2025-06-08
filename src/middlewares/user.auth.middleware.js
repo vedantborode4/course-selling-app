@@ -8,7 +8,7 @@ function userAuthMiddleware ( req, res, next ) {
     const isDecoded = jwt.verify(token, JWT_SECRET);
 
     if(isDecoded){
-        req.userId = isDecoded.id;
+        req.userId = isDecoded.userId;
         next()
     }else{
         return res.json({
