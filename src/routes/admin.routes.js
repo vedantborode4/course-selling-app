@@ -22,6 +22,14 @@ const adminLoginZodSchema = z.object({
     password: z.string().min(6).max(52),    
 })
 
+const courseUpdateZodSchema = z.object({
+        title: z.string(),
+        description: z.string(),
+        imgURL: z.string(),
+        price: z.number(),
+        courseId: z.string(),
+})
+
 const JWT_SECRET = `${process.env.ADMIN_JWT_SECRET}`
 
 adminRouter.post("/signup", async(req, res) => {
@@ -146,16 +154,55 @@ adminRouter.post("/course", adminAuthMiddleware , async (req, res) => {
     })
 });
 
-adminRouter.put("/course", (req, res) => {
-    res.json({
-        message: "Admin put course endpoint"
-    }); 
+adminRouter.put("/course", adminAuthMiddleware, async (req, res) => {
+    try {
+        const adminId = req.adminId;
+        console.log(adminId)
+
+        const parsedData = courseUpdateZodSchema.safeParse(req.body)
+        if(!parsedData.success){
+            return res.json({
+                message: parsedData.error.errors
+            })
+        } 
+
+        const course = await Course.updateOne({
+            _id: parsedData.data.courseId,
+            instructorId: adminId
+        }, {
+            title: parsedData.data.title,
+            description: parsedData.data.description,
+            price: parsedData.data.price,
+            imgURL: parsedData.data.imgURL
+        })
+
+        res.json({
+            message: "Course updated",
+            courseId: course._id
+        })
+
+    } catch (error) {
+        message: `Course update failed : ${error}`   
+    }
 });
 
-adminRouter.get("/course/bulk", (req, res) => {
-    res.json({
-        message: "Admin get course endpoint"
-    }); 
+adminRouter.get("/course/bulk", adminAuthMiddleware, async (req, res) => {
+    try {
+        const adminId = req.adminId
+
+        const course = await Course.find({
+            instructorId: adminId
+        })
+
+        res.json({
+            message: "all courses",
+            course
+        })
+
+    } catch (error) {
+        message: `Failed to load course`
+        error: error
+    }
 });
 
 exports.adminRouter = adminRouter;
