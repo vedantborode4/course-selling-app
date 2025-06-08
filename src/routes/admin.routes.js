@@ -22,6 +22,13 @@ const adminLoginZodSchema = z.object({
     password: z.string().min(6).max(52),    
 })
 
+const courseCreateZodSchema = z.object({
+        title: z.string(),
+        description: z.string(),
+        imgURL: z.string(),
+        price: z.number(),
+})
+
 const courseUpdateZodSchema = z.object({
         title: z.string(),
         description: z.string(),
@@ -138,13 +145,19 @@ adminRouter.post("/course", adminAuthMiddleware , async (req, res) => {
 
     const adminId = req.adminId
 
-    const { title, description, imgURL, price } = req.body
+    const parsedData = courseCreateZodSchema.safeParse(req.body)
+
+    if(!parsedData.success){
+        return res.json({
+            message: parsedData.error.errors
+        })
+    }
 
     const course = await Course.create({
-        title: title,
-        description: description,
-        imgURL: imgURL,
-        price: price,
+        title: parsedData.data.title,
+        description: parsedData.data.description,
+        imgURL: parsedData.data.imgURL,
+        price: parsedData.data.price,
         instructorId: adminId
     })
 
