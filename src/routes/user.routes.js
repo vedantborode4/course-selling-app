@@ -5,6 +5,8 @@ const { User } = require("../models/user.model.js");
 const z = require("zod")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
+const { userAuthMiddleware } = require("../middlewares/user.auth.middleware.js");
+const { Purchase } = require("../models/purchases.model.js");
 
 const userRouter = Router();
 
@@ -125,9 +127,13 @@ userRouter.post("/login", async(req, res) => {
 
 })
 
-userRouter.get("/purchases", (req, res) => {
+userRouter.get("/purchases", userAuthMiddleware ,async (req, res) => {
+    const userId = req.userId
+
+    const purchase = await Purchase.find({userId})
+
     res.json({
-        message: "purchases endpoint"
+        purchase
     })
 })
 
